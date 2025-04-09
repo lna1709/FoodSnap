@@ -1,16 +1,17 @@
-
 import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 
-// Dish data
+// Dish data - update with restaurant IDs to match the restaurant model
 const dishes = [
   {
     id: 1,
     name: "Classic Cheeseburger",
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 9.99,
-    restaurant: "Burger Heaven",
+    restaurant: "Burger Palace",
+    restaurantId: "1",
     category: "American"
   },
   {
@@ -18,7 +19,8 @@ const dishes = [
     name: "Margherita Pizza",
     image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 12.99,
-    restaurant: "Pizza Place",
+    restaurant: "Pizza Heaven",
+    restaurantId: "2",
     category: "Italian"
   },
   {
@@ -26,7 +28,8 @@ const dishes = [
     name: "Spicy Tuna Roll",
     image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 15.99,
-    restaurant: "Sushi Express",
+    restaurant: "Sushi World",
+    restaurantId: "3",
     category: "Japanese"
   },
   {
@@ -34,7 +37,8 @@ const dishes = [
     name: "Chicken Pad Thai",
     image: "https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 13.99,
-    restaurant: "Thai Delight",
+    restaurant: "Mediterranean Delight",
+    restaurantId: "6",
     category: "Thai"
   },
   {
@@ -43,6 +47,7 @@ const dishes = [
     image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 10.99,
     restaurant: "Taco Fiesta",
+    restaurantId: "4",
     category: "Mexican"
   },
   {
@@ -50,7 +55,8 @@ const dishes = [
     name: "Butter Chicken",
     image: "https://images.unsplash.com/photo-1585937421612-70a008356c36?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 14.99,
-    restaurant: "Curry House",
+    restaurant: "Noodle House",
+    restaurantId: "5",
     category: "Indian"
   },
   {
@@ -58,7 +64,8 @@ const dishes = [
     name: "Fettuccine Alfredo",
     image: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 13.99,
-    restaurant: "Pasta Palace",
+    restaurant: "Pizza Heaven",
+    restaurantId: "2",
     category: "Italian"
   },
   {
@@ -66,7 +73,8 @@ const dishes = [
     name: "BBQ Ribs",
     image: "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
     price: 17.99,
-    restaurant: "Grill Master",
+    restaurant: "Burger Palace",
+    restaurantId: "1",
     category: "American"
   }
 ];
@@ -123,30 +131,33 @@ const PopularDishes = () => {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {dishes.map((dish) => (
-            <div 
-              key={dish.id} 
-              className="flex-none w-[280px] bg-white rounded-lg overflow-hidden shadow-md hover-scale card-shadow snap-start"
+            <Link 
+              to={`/restaurant/${dish.restaurantId}?dishId=${dish.id}`}
+              key={dish.id}
+              className="no-underline text-inherit"
             >
-              <div className="h-40 overflow-hidden">
-                <img 
-                  src={dish.image} 
-                  alt={dish.name} 
-                  className="w-full h-full object-cover transition-transform hover:scale-105"
-                />
-              </div>
-              
-              <div className="p-4">
-                <h3 className="font-medium text-lg mb-1 truncate">{dish.name}</h3>
-                <p className="text-foodsnap-lightText text-sm mb-3">{dish.restaurant} • {dish.category}</p>
+              <div 
+                className="flex-none w-[280px] bg-white rounded-lg overflow-hidden shadow-md hover-scale card-shadow snap-start"
+              >
+                <div className="h-40 overflow-hidden">
+                  <img 
+                    src={dish.image} 
+                    alt={dish.name} 
+                    className="w-full h-full object-cover transition-transform hover:scale-105"
+                  />
+                </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-foodsnap-darkText">${dish.price.toFixed(2)}</span>
-                  <Button variant="ghost" className="text-foodsnap-teal hover:text-white hover:bg-foodsnap-teal p-2 h-auto">
-                    Add to Cart
-                  </Button>
+                <div className="p-4">
+                  <h3 className="font-medium text-lg mb-1 truncate">{dish.name}</h3>
+                  <p className="text-foodsnap-lightText text-sm mb-3">{dish.restaurant} • {dish.category}</p>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-foodsnap-darkText">${dish.price.toFixed(2)}</span>
+                    <span className="text-foodsnap-teal font-medium">View Dish</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
