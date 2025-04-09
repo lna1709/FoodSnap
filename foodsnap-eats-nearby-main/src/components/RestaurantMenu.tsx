@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import AddToCartDialog from "./AddToCartDialog";
+import { useParams } from "react-router-dom";
 
 interface MenuItem {
   id: string;
@@ -19,10 +21,14 @@ interface MenuCategory {
 interface RestaurantMenuProps {
   menu: MenuCategory[];
   highlightedDishId?: string | null;
+  restaurantName: string;
 }
 
-const RestaurantMenu = ({ menu, highlightedDishId }: RestaurantMenuProps) => {
+const RestaurantMenu = ({ menu, highlightedDishId, restaurantName }: RestaurantMenuProps) => {
+  const { id: restaurantId } = useParams<{ id: string }>();
   const highlightedDishRef = useRef<HTMLDivElement | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Scroll to highlighted dish if dishId is provided
   useEffect(() => {
@@ -30,6 +36,18 @@ const RestaurantMenu = ({ menu, highlightedDishId }: RestaurantMenuProps) => {
       highlightedDishRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [highlightedDishId, highlightedDishRef]);
+
+  const handleAddToCart = (item: MenuItem) => {
+    setSelectedItem({
+      id: parseInt(item.id),
+      name: item.name,
+      price: item.price,
+      image: item.image || 'https://placehold.co/600x400?text=No+Image',
+      restaurantId: restaurantId || '1',
+      restaurantName: restaurantName
+    });
+    setIsDialogOpen(true);
+  };
 
   return (
     <div className="space-y-8">
@@ -70,6 +88,7 @@ const RestaurantMenu = ({ menu, highlightedDishId }: RestaurantMenuProps) => {
                             variant="ghost" 
                             size="sm" 
                             className="mt-2 text-foodsnap-teal hover:text-foodsnap-teal/80 hover:bg-foodsnap-teal/10 p-0 h-auto"
+                            onClick={() => handleAddToCart(item)}
                           >
                             <PlusCircle size={16} className="mr-1" /> Add to cart
                           </Button>
@@ -93,6 +112,14 @@ const RestaurantMenu = ({ menu, highlightedDishId }: RestaurantMenuProps) => {
           </div>
         </div>
       ))}
+
+      {selectedItem && (
+        <AddToCartDialog 
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          item={selectedItem}
+        />
+      )}
     </div>
   );
 };

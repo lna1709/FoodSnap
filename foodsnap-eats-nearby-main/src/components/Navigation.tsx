@@ -1,15 +1,15 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCart } from '@/context/CartContext';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -50,16 +50,16 @@ const Navigation = () => {
           {/* Navigation Links - Hidden on mobile */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Home</Link>
-            <Link to="/restaurants" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Browse Restaurants</Link>
+            <Link to="/search" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Browse</Link>
             <Link to="/promotions" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Promotions</Link>
             
             {/* Cart */}
             <div className="relative">
               <Link to="/cart" className="text-gray-700 hover:text-foodsnap-orange transition-colors">
                 <ShoppingCart size={22} />
-                {cartItems > 0 && (
+                {totalItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-foodsnap-orange text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItems}
+                    {totalItems}
                   </span>
                 )}
               </Link>
@@ -101,11 +101,11 @@ const Navigation = () => {
           <div className="md:hidden mt-3 pb-3 border-t border-gray-200">
             <div className="flex flex-col space-y-3 pt-3">
               <Link to="/" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Home</Link>
-              <Link to="/restaurants" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Browse Restaurants</Link>
+              <Link to="/search" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Browse</Link>
               <Link to="/promotions" className="text-gray-700 hover:text-foodsnap-orange transition-colors">Promotions</Link>
               <Link to="/cart" className="text-gray-700 hover:text-foodsnap-orange transition-colors flex items-center">
                 <ShoppingCart size={20} className="mr-2" />
-                <span>Cart {cartItems > 0 && `(${cartItems})`}</span>
+                <span>Cart {totalItems > 0 && `(${totalItems})`}</span>
               </Link>
               <Link to="/login" className="text-gray-700 hover:text-foodsnap-orange transition-colors flex items-center">
                 <User size={20} className="mr-2" />
