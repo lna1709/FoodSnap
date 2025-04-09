@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, Tag, ChevronRight, PencilIcon } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useCart } from '@/context/CartContext';
 
@@ -69,10 +71,50 @@ const Cart = () => {
     // Mock promo code validation
     if (promoCode.toUpperCase() === "WELCOME20") {
       setAppliedPromo({ code: "WELCOME20", discount: subtotal * 0.2 });
+      toast({
+        title: "Promo code applied",
+        description: "20% discount has been applied to your order.",
+      });
     } else if (promoCode.toUpperCase() === "FREESHIP") {
       setAppliedPromo({ code: "FREESHIP", discount: deliveryFee });
+      toast({
+        title: "Promo code applied",
+        description: "Free delivery has been applied to your order.",
+      });
     } else {
-      alert("Invalid promo code");
+      toast({
+        title: "Invalid promo code",
+        description: "Please enter a valid promo code.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle quantity change
+  const handleQuantityChange = (id: number, newQuantity: number) => {
+    if (newQuantity >= 1) {
+      updateQuantity(id, newQuantity);
+    }
+  };
+
+  // Handle item removal
+  const handleRemoveItem = (id: number, itemName: string) => {
+    removeFromCart(id);
+    toast({
+      title: "Item removed",
+      description: `${itemName} has been removed from your cart.`,
+    });
+  };
+
+  // Handle cart clearing
+  const handleClearCart = () => {
+    if (window.confirm("Are you sure you want to clear your cart?")) {
+      clearCart();
+      setAppliedPromo(null);
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart.",
+      });
     }
   };
 
@@ -85,7 +127,14 @@ const Cart = () => {
   // Save edited notes
   const saveNotes = () => {
     if (editingNoteId !== null) {
+      const item = cartItems.find(item => item.id === editingNoteId);
       updateNotes(editingNoteId, editedNote);
+      
+      toast({
+        title: "Instructions saved",
+        description: item ? `Special instructions for ${item.name} updated.` : "Special instructions updated.",
+      });
+      
       setEditingNoteId(null);
       setEditedNote("");
     }
@@ -111,7 +160,7 @@ const Cart = () => {
                 <Button 
                   variant="ghost" 
                   className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  onClick={clearCart}
+                  onClick={handleClearCart}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Clear Cart
@@ -157,16 +206,18 @@ const Cart = () => {
                             <div className="flex justify-between items-center mt-2">
                               <div className="flex items-center border rounded-md">
                                 <button 
+                                  type="button"
                                   className="px-2 py-1 text-gray-500 hover:text-foodsnap-orange"
-                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                                   aria-label="Decrease quantity"
                                 >
                                   <Minus size={16} />
                                 </button>
                                 <span className="px-3 py-1">{item.quantity}</span>
                                 <button 
+                                  type="button"
                                   className="px-2 py-1 text-gray-500 hover:text-foodsnap-orange"
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                                   aria-label="Increase quantity"
                                 >
                                   <Plus size={16} />
@@ -175,28 +226,49 @@ const Cart = () => {
                               
                               <div className="flex gap-2">
                                 <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-foodsnap-teal hover:text-foodsnap-teal/80 hover:bg-foodsnap-teal/10"
-                                  onClick={() => openEditNotes(item.id, item.notes)}
-                                >
-                                  <PencilIcon size={16} />
-                                </Button>
-                                
-                                <Button 
+                                  type="button"
                                   variant="ghost" 
                                   size="sm" 
                                   className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => removeFromCart(item.id)}
+                                  onClick={() => handleRemoveItem(item.id, item.name)}
                                 >
                                   <Trash2 size={16} />
                                 </Button>
                               </div>
                             </div>
                             
-                            {item.notes && (
-                              <p className="text-gray-500 text-sm mt-2">Note: {item.notes}</p>
-                            )}
+                            <div className="flex items-center mt-2">
+                              {item.notes ? (
+                                <div className="flex items-start gap-2 w-full">
+                                  <div className="flex-grow">
+                                    <p className="text-gray-500 text-sm">
+                                      <span className="font-medium text-gray-600">Special Instructions:</span> {item.notes}
+                                    </p>
+                                  </div>
+                                  <Button 
+                                    type="button"
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-foodsnap-teal hover:text-foodsnap-teal/80 hover:bg-foodsnap-teal/10 h-7 px-2"
+                                    onClick={() => openEditNotes(item.id, item.notes)}
+                                  >
+                                    <PencilIcon size={14} className="mr-1" />
+                                    Edit
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button 
+                                  type="button"
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-foodsnap-teal hover:text-foodsnap-teal/80 hover:bg-foodsnap-teal/10 w-full"
+                                  onClick={() => openEditNotes(item.id, "")}
+                                >
+                                  <PencilIcon size={14} className="mr-1" />
+                                  Add Special Instructions
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <Separator className="mt-4" />
@@ -223,6 +295,7 @@ const Cart = () => {
                         className="flex-grow"
                       />
                       <Button 
+                        type="button"
                         variant="outline" 
                         className="border-foodsnap-teal text-foodsnap-teal hover:bg-foodsnap-teal hover:text-white"
                         onClick={applyPromoCode}
@@ -274,7 +347,10 @@ const Cart = () => {
                       </div>
                     </div>
                     
-                    <Button className="w-full mt-6 bg-foodsnap-orange hover:bg-foodsnap-orange/90">
+                    <Button 
+                      type="button"
+                      className="w-full mt-6 bg-foodsnap-orange hover:bg-foodsnap-orange/90"
+                    >
                       Proceed to Checkout
                     </Button>
                     
@@ -307,33 +383,46 @@ const Cart = () => {
       <Footer />
 
       {/* Edit Notes Dialog */}
-      <Dialog open={editingNoteId !== null} onOpenChange={() => setEditingNoteId(null)}>
+      <Dialog 
+        open={editingNoteId !== null} 
+        onOpenChange={(open) => {
+          if (!open) setEditingNoteId(null);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Special Instructions</DialogTitle>
+            <DialogDescription>
+              Add any special requests for how your food should be prepared.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <Textarea
-              placeholder="E.g., No onions, extra spicy, etc."
+              placeholder="E.g., No onions, extra spicy, allergies, etc."
               value={editedNote}
               onChange={(e) => setEditedNote(e.target.value)}
-              className="resize-none"
+              className="resize-none min-h-[100px]"
             />
+            <p className="text-xs text-gray-500">
+              Note: Additional charges may apply for certain modifications.
+            </p>
           </div>
           
           <DialogFooter>
             <Button 
+              type="button"
               variant="outline" 
               onClick={() => setEditingNoteId(null)}
             >
               Cancel
             </Button>
             <Button 
+              type="button"
               onClick={saveNotes}
               className="bg-foodsnap-orange hover:bg-foodsnap-orange/90"
             >
-              Save
+              Save Instructions
             </Button>
           </DialogFooter>
         </DialogContent>
