@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 // Define the cart item type
 export interface CartItem {
@@ -21,6 +22,7 @@ interface CartContextType {
   updateNotes: (id: number, notes: string) => void;
   clearCart: () => void;
   totalItems: number;
+  cartRestaurantId: string | null;
 }
 
 // Create the context with a default value
@@ -73,23 +75,41 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Get current restaurant ID
+  const cartRestaurantId = cartItems.length > 0 ? cartItems[0].restaurantId : null;
+
   // Add item to cart
   const addToCart = (item: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(cartItem => cartItem.id === item.id);
-      
-      if (existingItem) {
-        // Update quantity if item exists
-        return prevItems.map(cartItem => 
-          cartItem.id === item.id 
-            ? { ...cartItem, quantity: cartItem.quantity + quantity, notes: item.notes }
-            : cartItem
-        );
+    // Check if trying to add from a different restaurant
+    if (cartItems.length > 0 && cartRestaurantId !== item.restaurantId) {
+      if (window.confirm(`Your cart contains items from ${cartItems[0].restaurantName}. Adding this item will clear your current cart. Would you like to proceed?`)) {
+        // Clear cart and add new item
+        setCartItems([{ ...item, quantity }]);
+        toast({
+          title: "Cart updated",
+          description: `Your cart has been updated with items from ${item.restaurantName}.`,
+        });
       } else {
-        // Add new item
-        return [...prevItems, { ...item, quantity }];
+        // User cancelled
+        return;
       }
-    });
+    } else {
+      setCartItems(prevItems => {
+        const existingItem = prevItems.find(cartItem => cartItem.id === item.id);
+        
+        if (existingItem) {
+          // Update quantity if item exists
+          return prevItems.map(cartItem => 
+            cartItem.id === item.id 
+              ? { ...cartItem, quantity: cartItem.quantity + quantity, notes: item.notes }
+              : cartItem
+          );
+        } else {
+          // Add new item
+          return [...prevItems, { ...item, quantity }];
+        }
+      });
+    }
   };
 
   // Remove item from cart
@@ -132,7 +152,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateQuantity,
       updateNotes,
       clearCart,
-      totalItems
+      totalItems,
+      cartRestaurantId
     }}>
       {children}
     </CartContext.Provider>
